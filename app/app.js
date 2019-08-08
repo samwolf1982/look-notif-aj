@@ -91,6 +91,8 @@ app.use(function(err, req, res, next) {
 
 module.exports = app;
 
-app.listen(nconf.get('port'), function () {
-    console.log('Example app listening on port 1337!');
-});
+if(0){ // local dev
+    app.listen(nconf.get('port'), function () {
+        console.log('Example app listening on port 1337!');
+    });
+}
