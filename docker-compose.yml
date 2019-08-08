@@ -6,7 +6,9 @@ web:
     - "3030:3000"
   links:
     - "db:redis"
-  command: nodemon -L app/bin/www
+  command: node app/bin/run.js
+#  command: pm2 start app/bin/run.js
+#  command: nodemon -L app/bin/www
 
 nginx:
   restart: always
