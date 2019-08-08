@@ -1,4 +1,4 @@
-// example key  has_message_user_222
+// example key  user:3  user:{3 ид пользователя }er:3
 var nconf = require('nconf');
 var express = require('express');
 var redis = require('redis');
@@ -12,11 +12,9 @@ var clientRedis = redis.createClient(port, host);
 router.get('/', function (req, res, next) {
     let userId = req.params.userId;
     if (userId) {
-        let userKey = 'user_' + userId;
-        clientRedis.get('has_message_' + userKey, function (err, result) {
-            if (err) {
-                res.json({amount: 0, isError: 1, errorMessage: err.toString(), userId: userId});
-            }
+        let userKey = 'user:' + userId;
+        clientRedis.llen(userKey, function(err, result) {
+            if (err) {res.json({amount: 0, isError: 1, errorMessage: err.toString(), userId: userId});}
             if(result){
                 res.json({amount: Number(result), isError: 0, errorMessage: '', userId: userId});
             }else{
@@ -27,5 +25,4 @@ router.get('/', function (req, res, next) {
         res.json({amount: 0, isError: 1, errorMessage: 'not found user', userId: userId});
     }
 });
-
 module.exports = router;

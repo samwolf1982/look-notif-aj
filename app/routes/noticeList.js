@@ -1,4 +1,7 @@
 // example key  has_message_user_222
+// example key  user:3:type_1   user:{3 ид пользователя }:type_{2 тип сообщения} -- NO
+// example key  user:3  user:{3 ид пользователя }
+
 var nconf = require('nconf');
 var express = require('express');
 var redis = require('redis');
@@ -12,20 +15,30 @@ var clientRedis = redis.createClient(port, host);
 router.get('/', function (req, res, next) {
     let userId = req.params.userId;
     if (userId) {
-        let userKey = 'user_' + userId;
-        clientRedis.get('has_message_' + userKey, function (err, result) {
+        let userKey = 'user:' + userId;
+        clientRedis.lrange(userKey,0,-1, function (err, result) {
             if (err) {
-                res.json({amount: 0, isError: 1, errorMessage: err.toString(), userId: userId});
+                res.json({ isError: 1, errorMessage: err.toString(), userId: userId});
             }
             if(result){
-                res.json({amount: Number(result), isError: 0, errorMessage: '', userId: userId});
+               let  resultArray  =  result.map(function (element) {
+                    let obj=JSON.parse(element);
+                    //todo зделать валидацию
+                    obj.isError=0;
+                    obj.errorMessage='';
+                    return obj;
+               });
+    // у пользователя есть сообщения
+                res.json(resultArray);
+                if(0){ // only prod
+                    clientRedis.del(userKey, function (err, result) {});
+                }
             }else{
-                res.json({amount: 0, isError: 0, errorMessage: '', userId: userId});
+                res.json({isError: 0, errorMessage: '', userId: userId});
             }
         });
     } else {
-        res.json({amount: 0, isError: 1, errorMessage: 'not found user', userId: userId});
+        res.json({isError: 1, errorMessage: 'not found message for user', userId: userId});
     }
 });
-
 module.exports = router;
