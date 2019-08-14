@@ -8,38 +8,46 @@ var host = process.env.REDIS_PORT_6379_TCP_ADDR || nconf.get('redis-host'); // '
 var port = process.env.REDIS_PORT_6379_TCP_PORT ||  nconf.get('redis-port') // 6379;
 var clientRedis = redis.createClient(port, host);
 
+var expiredCache=nconf.get('expired-cache');
+
 /* GET noticeUpload page. dev mode*/
 router.post('/', function (req, res, next) {
-
     let  runFunc = (req) => {
-        req.body.data.forEach( function (item, i, arr) {
-            if(validate(item)){
-                clientRedis.rpush(['user:'+item.uid, JSON.stringify(prepare(item))], function(err, reply) {
-                    console.log(reply); //prints 2
-                    if (err) {res.json({isError:1,errorMessage: err.toString()});}
-                });
-            }
-        });
+        let length = req.body.data.length;
+        // проверка на массовые уведомления если тип уведомления 1(от всех) или про 8
+        if( length>0 && ( req.body.data[0].type===1 ||  req.body.data[0].type===8 ) ){
+            loadMass(req);
+        }else{
+           loadSimple(req);
+        }
     };
-    runFunc(req);
-    res.json({isError:0,errorMessage:'',result:1,});
+   runFunc(req);
+   res.json({isError:0,errorMessage:'',result:1,});
 });
 
 
-
-/* GET noticeUpload page. only test dev mode*/
-router.get('/', function (req, res, next) {
-    let   obj = {"id": 15628137, "date": "08-24-2019 23:12:39", "type": 5, "title": "User2", "message": "mollit nostrud ut anim", "image": "/upload/image.png", "url": "http://some_url"};
-    // clientRedis.rpush(['user:3', ob.toString(),ob.toString()], function(err, reply) {
-    clientRedis.rpush(['user:3',JSON.stringify(obj)], function(err, reply) {
-        console.log(reply); //prints 2
-        clientRedis.llen('user:3', function(err, reply) {
-            res.json({isError:0,result:reply,count:reply});
-        });
+function loadSimple(req) {
+    req.body.data.forEach( function (item, i, arr) {
+        if(validate(item)){
+            clientRedis.rpush(['user:'+item.uid, JSON.stringify(prepare(item))],function(err, reply) {
+                clientRedis.EXPIRE('user:'+item.uid, expiredCache, function (err,reply) {
+                    console.log(reply); //prints 1
+                });
+            });
+        }
     });
-});
-
-
+}
+function loadMass(req) {
+    let user_list_id = req.body.data[0].user_list_id;
+    let message = prepareMass(req.body.data[0])
+    user_list_id.forEach( function (item, i, arr) {
+            clientRedis.rpush(['user:'+item, JSON.stringify(prepare(message))],function(err, reply) {
+                clientRedis.EXPIRE('user:'+item, expiredCache, function (err,reply) {
+                    console.log(reply); //prints 1
+                });
+            });
+        });
+}
 
 function validate(item){
 
@@ -49,10 +57,13 @@ function validate(item){
     return true
 }
 
-function prepare(el){
-    let   obj=el;
+function prepareMass(obj){
+    delete  obj.uid;
+    delete  obj.user_list_id;
+    return  obj;
+}
+function prepare(obj){
     delete  obj.uid;
     return  obj;
 }
-
 module.exports = router;

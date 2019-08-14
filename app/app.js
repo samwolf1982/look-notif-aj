@@ -22,11 +22,6 @@ var app = express();
 var corsOptions = {
     origin: function (origin, callback) {
         callback(null, true);
-        // if (whitelist.indexOf(origin) !== -1 || !origin) {
-        //     callback(null, true)
-        // } else {
-        //     callback(new Error('Not allowed by CORS'))
-        // }
     }
 }
 app.use(cors(corsOptions))
@@ -51,8 +46,9 @@ app.use('/noticeCount/:userId',cors(corsOptions), routeNoticeCount);
 app.use('/noticeList/:userId', routeNoticeList);
 
 
-// no delete
+// upload
 app.use('/upload', routeUpload);
+
 
 
 

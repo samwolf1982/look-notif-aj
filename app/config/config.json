@@ -1,6 +1,7 @@
 {
   "port": "1337",
   "redis-port": "6379",
-  "redis-host": "10.0.75.1"
+  "redis-host": "10.0.75.1",
+  "expired-cache":  172800
 
 }

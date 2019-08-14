@@ -1,7 +1,4 @@
-// example key  has_message_user_222
-// example key  user:3:type_1   user:{3 ид пользователя }:type_{2 тип сообщения} -- NO
 // example key  user:3  user:{3 ид пользователя }
-
 var nconf = require('nconf');
 var express = require('express');
 var redis = require('redis');
@@ -28,11 +25,11 @@ router.get('/', function (req, res, next) {
                     obj.errorMessage='';
                     return obj;
                });
-    // у пользователя есть сообщения
+                // у пользователя есть сообщения
                 res.json(resultArray);
-                if(0){ // only prod
-                    clientRedis.del(userKey, function (err, result) {});
-                }
+                // для разработки запрет на удаление сообщение после чтения
+                // if(0){clientRedis.del(userKey, function (err, result) {});}
+                clientRedis.del(userKey, function (err, result) {});
             }else{
                 res.json({isError: 0, errorMessage: '', userId: userId});
             }

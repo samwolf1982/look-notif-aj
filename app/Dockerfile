@@ -1,9 +1,9 @@
-FROM node
+FROM node:alpine
 
 RUN mkdir /src
 
-RUN npm install nodemon -g
-RUN npm install pm2 -g
+#RUN npm install nodemon -g
+#RUN npm install pm2 -g
 
 WORKDIR /src
 ADD package.json package.json
